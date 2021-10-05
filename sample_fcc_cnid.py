@@ -82,9 +82,7 @@ def get_gb_files(interface, hkl, axis, sigma, axis_name, hkl_name, ab, file, axi
     GB_area = norm(interface.lattice_bi[1])*norm(interface.lattice_bi[2])
     supercell_atoms = dot(interface.lattice_bi, interface.atoms_bi.T).T
     atoms_aroundgb = supercell_atoms[(supercell_atoms[:,0] >= (interface.xhi/2-bond_length*2)) & (supercell_atoms[:,0]<=(bond_length*2 + interface.xhi/2))]
-    file.write(f'{CNID[:,0][1]} {CNID[:,0][2]} {CNID[:,1][1]} {CNID[:,1][2]} {length_1} {length_2} {area} {sigma} {axis_num} {ab_num} {GB_area} {len(atoms_aroundgb)} \n'.format(, , \
-                                                                   , , \
-                                                                   , , , , , , ))
+    file.write(f'{CNID[:,0][1]} {CNID[:,0][2]} {CNID[:,1][1]} {CNID[:,1][2]} {length_1} {length_2} {area} {sigma} {axis_num} {ab_num} {GB_area} {len(atoms_aroundgb)} \n')
     v1 = np.array([0,1.,0])*CNID[:,0][1] + np.array([0,0,1.])*CNID[:,0][2]
     v2 = np.array([0,1.,0])*CNID[:,1][1] + np.array([0,0,1.])*CNID[:,1][2]
 
