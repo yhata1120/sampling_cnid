@@ -27,8 +27,7 @@ def getLatP():
 def get_a_b(CSL, axis):
     hkl_perp_axis = MID(CSL, axis)
     a, b = get_pri_vec_inplane(hkl_perp_axis, CSL).T
-    print(f'a____________1 = {a}')
-    print(f'b____________1 = {b}')
+
     if(norm(cross(axis,[1,0,0])) < 1e-8):
         b = a + b
     elif (norm(cross(axis,[1,1,1])) < 1e-8):
@@ -37,18 +36,14 @@ def get_a_b(CSL, axis):
         b = a + b
     if (abs(norm(a) - norm(b)) < 1e-8):
         raise RuntimeError ('the tow vectors are identical!')
-    print(f'a1 is {a.T}')
-    print(f'a2 is {b.T}')
+
     return a.T, b.T
 	
 	
 def get_STGB_MLs(CSL, n_1, n_2):
     hkl_1 = MID(CSL, n_1)
     hkl_2 = MID(CSL, n_2)
-#     hkl_1[2] = 0
-#     hkl_2[2] = 0
-    print(f'hkl1 is {hkl_1}')
-    print(f'hkl2 is {hkl_2}')
+
     return hkl_1, hkl_2
 	
 	
@@ -72,25 +67,13 @@ def get_gb_files(interface, hkl, axis, sigma, axis_name, hkl_name, ab, file, axi
     dirname = f'{axis_name_num}_{int(sigma)}_{ab}.stgb'
     os.mkdir(dirname)
     os.chdir(dirname)
-    print(f'lattice1 is {interface.lattice_1}') # おそらくここが間違っている
-    print(f'self.lattice_bi is {interface.lattice_bi}')
-    print(f'slablattice is {interface.slab_lattice_1}')
-    lattice_bi_copy = interface.lattice_bi.copy()
-    atoms_bi_copy = interface.atoms_bi.copy()
-    elements_bi_copy = interface.elements_bi.copy()
-    lattice_1_copy, atoms_1_copy, elements_1_copy = interface.lattice_1.copy(), interface.atoms_1.copy(), interface.elements_1.copy()
-    lattice_2_copy, atoms_2_copy, elements_2_copy = interface.lattice_2.copy(), interface.atoms_2.copy(), interface.elements_2.copy()    
+
     if (axis_name == [1,1,1]):    
         interface.get_bicrystal(xyz_1 = [x,y,z], xyz_2 =[x,y,z],filename = 'atominfile', filetype='LAMMPS',mirror = True)
     else:
         interface.get_bicrystal(xyz_1 = [x,y,z], xyz_2 =[x,y,z],filename = 'atominfile', filetype='LAMMPS',mirror = False)
 
-    print(f'lattice1 is {interface.lattice_1}') # おそらくここが間違っている
-    print(f'self.lattice_bi is {interface.lattice_bi}')
-    print(f'slablattice is {interface.slab_lattice_1}')
-#    print(f'U1_2 is {interface.bicrystal_U1}')
     eps = 1e-5
-    print(f'xhi = {interface.xhi}')
     define_bicrystal_regions(interface.xhi)
     CNID = dot(interface.orient, interface.CNID)
     length_1 = norm(CNID[:,0])
@@ -99,9 +82,9 @@ def get_gb_files(interface, hkl, axis, sigma, axis_name, hkl_name, ab, file, axi
     GB_area = norm(interface.lattice_bi[1])*norm(interface.lattice_bi[2])
     supercell_atoms = dot(interface.lattice_bi, interface.atoms_bi.T).T
     atoms_aroundgb = supercell_atoms[(supercell_atoms[:,0] >= (interface.xhi/2-bond_length*2)) & (supercell_atoms[:,0]<=(bond_length*2 + interface.xhi/2))]
-    file.write('{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} \n'.format(CNID[:,0][1], CNID[:,0][2], \
-                                                                   CNID[:,1][1], CNID[:,1][2], \
-                                                                   length_1, length_2, area, sigma, axis_num, ab_num,GB_area, len(atoms_aroundgb)))
+    file.write(f'{CNID[:,0][1]} {CNID[:,0][2]} {CNID[:,1][1]} {CNID[:,1][2]} {length_1} {length_2} {area} {sigma} {axis_num} {ab_num} {GB_area} {len(atoms_aroundgb)} \n'.format(, , \
+                                                                   , , \
+                                                                   , , , , , , ))
     v1 = np.array([0,1.,0])*CNID[:,0][1] + np.array([0,0,1.])*CNID[:,0][2]
     v2 = np.array([0,1.,0])*CNID[:,1][1] + np.array([0,0,1.])*CNID[:,1][2]
 
@@ -109,13 +92,7 @@ def get_gb_files(interface, hkl, axis, sigma, axis_name, hkl_name, ab, file, axi
     n2 = int(ceil(norm(v2)/0.2))
     write_trans_file(v1,v2,n1,n2)
     get_potential_proto()
-    # at this point, get run lammps
-    print('mpirun -np 12 lmp_mpi < proto.in > output')
-#     interface.lattice_bi = lattice_bi_copy
-#     interface.atoms_bi = atoms_bi_copy
-#     interface.elements_bi = elements_bi_copy
-#     interface.lattice_1, interface.atoms_1, interface.elements_1 = lattice_1_copy, atoms_1_copy, elements_1_copy
-#     interface.lattice_2, interface.atoms_2, interface.elements_2 = lattice_2_copy, atoms_2_copy, elements_2_copy 
+
     os.chdir(os.pardir)
 
 def define_bicrystal_regions(xhi):
@@ -175,20 +152,16 @@ def get_all_STGBs(axis_list, theta_list, sigma_list):
             print(theta_list[i][j])
             sigma = sigma_list[i][j]
             my_interface.search_one_position(axis,theta_list[i][j]-0.001,1,0.001)
-            print(f'CSL is {my_interface.CSL}')
             CSL = my_interface.CSL
             n_1, n_2 = get_a_b(CSL, dot(my_interface.lattice_1,axis))
             hkl_1, hkl_2 = get_STGB_MLs(my_interface.lattice_1, n_1, n_2)
             hkl_name_1 = get_primitive_hkl(hkl_1, my_interface.lattice_1, my_interface.conv_lattice_1)
             hkl_name_2 = get_primitive_hkl(hkl_2, my_interface.lattice_2, my_interface.conv_lattice_2)
-            print(f'U1_1 is {my_interface.bicrystal_U1}')
+
             get_gb_files(my_interface, hkl_1, axis, sigma, axis_name, hkl_name_1, 'a_{}'.format(count), file, i+1, 1, bond_length)
-            print(f'CSL1 is {my_interface.CSL}')
-            print(f'a_{hkl_1}')
-            print(f'U1_2 is {my_interface.bicrystal_U1}')
+
             get_gb_files(my_interface, hkl_2, axis, sigma, axis_name, hkl_name_2, 'b_{}'.format(count+1), file, i+1, 2, bond_length)
-            print(f'CSL2 is {my_interface.CSL}')
-            print(f'b_{hkl_2}')
+
             
             count += 2
     file.close()
@@ -210,7 +183,7 @@ def get_potential_proto():
     # potential_proto file should be subdirectory of directory that includes program
     input_file_path = os.path.join(os.pardir,'potential_proto\\*')
     for file in glob.glob(input_file_path):
-        print(file)
+
         shutil.copy(file,os.getcwd())
 		
 def replace_func(fname, replace_set):
